@@ -1,5 +1,19 @@
 #include <Windows.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+
 #include "resource.h"
+
+Bitmap *visibleImage;
+Bitmap *filteredImage;
+
+// TESTING GDI+
+void MyOnPaint(HDC hdc)
+{
+	Graphics graphics(hdc);
+	Pen pen(Color(255, 0, 0, 255));
+	graphics.DrawLine(&pen, 0, 0, 200, 100);
+}
 
 
 BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -9,6 +23,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	// Start GDI+
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+
+	// input of new image
+	visibleImage = new Bitmap(L"Photo.JPG");
+
+
 	HWND dialog{};
 
 	dialog = CreateDialog(hInstance, MAKEINTRESOURCE(mainWindow), NULL, DialogProc);
@@ -29,37 +53,61 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DispatchMessage(&msg);
 	}
 
+
+	// End GDI+
+	GdiplusShutdown(gdiplusToken);
 	return (int)msg.wParam;
 }
 
 
 BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	
+	//	TESTING PURPOSES ONLY
+	//Image image(L"Photo.JPG");
+	
+	 //draws the image in our Dialogue box
+	// on our window 10 to right, 150 to bottom is the start of the input image
+	
+
+
+
 	switch (message)
 	{
-	case WM_INITDIALOG:
-		//MessageBox(NULL, "Working", "DialogWindow", NULL);
-		break;
-
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
 		case applyFilterb:
-			MessageBox(NULL, "Applying Filter", "", NULL);				// TODO 
+		{
+			MessageBox(NULL, L"Applying Filter", L"", NULL);				// TODO 
 			//						// apply filter
-			return 0;
+			Graphics graphics(hwnd);
+			//graphics.DrawImage(visibleImage, 10, 150);
 
+
+			UINT PictureHeight = 700;
+			UINT PictureWidth = (UINT)PictureHeight * ((float)visibleImage->GetWidth() / visibleImage->GetHeight());
+			Rect destinationRect(10, 120, PictureHeight, PictureWidth);
+			graphics.DrawImage(
+				visibleImage,
+				destinationRect,
+				0, 0,
+				visibleImage->GetHeight(), visibleImage->GetWidth(),
+				UnitPixel
+			);
+			return 0;
+		}
 		case BlurBoxr:
-			MessageBox(NULL, "Changing filter to Box Blur", "", NULL);	// TODO
+			MessageBox(NULL, L"Changing filter to Box Blur", L"", NULL);	// TODO
 			return 0;
 
 		case BWr:
-			MessageBox(NULL, "Changing filter to B&W", "", NULL);		// TODO
+			MessageBox(NULL, L"Changing filter to B&W", L"", NULL);		// TODO
 			return 0;
 
 
 		case Radiuss:
-			MessageBox(NULL, "Change the radius according to slider", "", NULL);	// TODO
+			MessageBox(NULL, L"Change the radius according to slider", L"", NULL);	// TODO
 			return 0;
 		}
 
