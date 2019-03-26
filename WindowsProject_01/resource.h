@@ -9,8 +9,7 @@
 #define IDC_SLIDER1                     1005
 #define Radiuss                         1005
 #define ImageWindow                     1006
-#define IDC_BUTTON1                     1007
-#define ImageUpload_b                   1007
+#define BrowseImage_b                   1007
 
 // Next default values for new objects
 // 

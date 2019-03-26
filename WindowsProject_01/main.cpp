@@ -1,20 +1,36 @@
 #include <Windows.h>
 #include <gdiplus.h>
+#include <string>
+#include "resource.h"
+#include <tchar.h>
+#include <atlstr.h>	// for CW2A conversion
 using namespace Gdiplus;
 
-#include "resource.h"
+
 
 Bitmap *visibleImage;
 Bitmap *filteredImage;
 
-// TESTING GDI+
-void MyOnPaint(HDC hdc)
+std::string getPath(HWND hwnd)
 {
-	Graphics graphics(hdc);
-	Pen pen(Color(255, 0, 0, 255));
-	graphics.DrawLine(&pen, 0, 0, 200, 100);
-}
+	wchar_t filename[MAX_PATH];
+	OPENFILENAME ofn;
 
+	ZeroMemory(&filename, sizeof(filename));
+	ZeroMemory(&ofn, sizeof(ofn));
+
+	ofn.lStructSize = sizeof(ofn);
+	ofn.lpstrFilter = _T("Any File\0*.*\0");
+	ofn.lpstrFile	= filename;
+	ofn.nMaxFile	= MAX_PATH;
+	ofn.lpstrTitle	= _T("Select the Image...");
+	ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+
+	if (!GetOpenFileName(&ofn))
+		throw "Invalid File input";
+
+	return std::string(CW2A(ofn.lpstrFile));
+}
 
 BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -62,16 +78,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	
-	//	TESTING PURPOSES ONLY
-	//Image image(L"Photo.JPG");
-	
-	 //draws the image in our Dialogue box
-	// on our window 10 to right, 150 to bottom is the start of the input image
-	
-
-
-
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -79,22 +85,8 @@ BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case applyFilterb:
 		{
-			MessageBox(NULL, L"Applying Filter", L"", NULL);				// TODO 
-			//						// apply filter
-			Graphics graphics(hwnd);
-			//graphics.DrawImage(visibleImage, 10, 150);
-
-
-			UINT PictureHeight = 700;
-			UINT PictureWidth = (UINT)PictureHeight * ((float)visibleImage->GetWidth() / visibleImage->GetHeight());
-			Rect destinationRect(10, 120, PictureHeight, PictureWidth);
-			graphics.DrawImage(
-				visibleImage,
-				destinationRect,
-				0, 0,
-				visibleImage->GetHeight(), visibleImage->GetWidth(),
-				UnitPixel
-			);
+			MessageBox(NULL, L"Applying Filter", L"", NULL);	// TODO
+																// apply filter
 			return 0;
 		}
 		case BlurBoxr:
@@ -109,6 +101,32 @@ BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case Radiuss:
 			MessageBox(NULL, L"Change the radius according to slider", L"", NULL);	// TODO
 			return 0;
+
+		case BrowseImage_b:
+		{
+			// choose original Image
+			std::string temp = getPath(hwnd);
+			std::wstring wtemp(temp.begin(), temp.end());
+			visibleImage = Bitmap::FromFile(wtemp.c_str());
+
+
+			// Draws the image in the dialog box
+			// Problematic: does not remove the old image once updated
+			Graphics graphics(hwnd);
+			UINT PictureHeight = 700;
+			UINT PictureWidth = (UINT)PictureHeight * ((float)visibleImage->GetWidth() / visibleImage->GetHeight());
+			Rect destinationRect(20, 150, PictureHeight, PictureWidth);
+			graphics.DrawImage(
+				visibleImage,
+				destinationRect,
+				0, 0,
+				visibleImage->GetHeight(), visibleImage->GetWidth(),
+				UnitPixel
+			);
+
+
+			return 0;
+		}
 		}
 
 	case WM_CLOSE:
@@ -123,3 +141,58 @@ BOOL CALLBACK DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	return FALSE;
 }
+
+
+
+
+
+/*			// FOR FUTURE INSPECTION	//
+
+
+			int _pixelSize = 3;
+			byte* _current = (byte*)(void*)bmData.Scan0;
+			int _nWidth = bmData.Width * _pixelSize;
+			int _nHeight = bmData.Height;
+
+
+
+
+			void SetColor(, Color color)
+			{
+				_current[0] = color.R;
+				_current[1] = color.G;
+				_current[2] = color.B;
+			}
+
+
+
+			for (int y = 0; y < _nHeight; y++)
+			{
+				for (int x = 0; x < _nWidth; x++)
+				{
+					if (x % _pixelSize == 0 || x == 0)
+					{
+						SetColor(new Color.Black);
+					}
+					_current++;
+				}
+			}
+
+
+			//////////////////
+
+
+			BitmapData bmData;
+
+			Rect rec(0, 0, visibleImage->GetWidth(), visibleImage->GetHeight());
+
+			visibleImage->LockBits(&rec, ImageLockModeRead, PixelFormat32bppARGB, &bmData);
+
+			INT iStride = abs(bmData.Stride);
+			HBITMAP img = NULL;
+			visibleImage->GetHBITMAP(0, &img);
+
+			SendDlgItemMessage(hwnd, ImageWindow, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)img);
+
+
+*/
