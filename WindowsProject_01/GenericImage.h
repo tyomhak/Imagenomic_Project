@@ -11,21 +11,22 @@ using namespace Gdiplus;
 class GenericImage
 {
 public:
-	GenericImage();
-	~GenericImage();
-
-	//virtual int GetPixelR(int i, int j);
-	//virtual int GetPixelG(int i, int j);
-	//virtual int GetPixelB(int i, int j);
+	GenericImage(Bitmap *bmap);
+	virtual ~GenericImage();
 
 
-	//virtual int SetPixelR(int i, int j);
-	//virtual int SetPixelG(int i, int j);
-	//virtual int SetPixelB(int i, int j);
 
 private:
-	int rOffset;
-	int gOffset;
-	int bOffset;
+	int _rOffset;
+	int _gOffset;
+	int _bOffset;
+
+
+	Bitmap * _bmap;
+	int		_pixelSize;
+	int		_nWidth;
+	int		_nHeight;
+
+
 };
 

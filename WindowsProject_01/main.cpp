@@ -4,15 +4,22 @@
 #include "resource.h"
 #include <tchar.h>
 #include <atlstr.h>	// for CW2A conversion
+#include <memory>
+#include "GenericFilter.h"
+#include "BW_Filter.h"
 
 using namespace Gdiplus;
 
 
 /*			global variables			*/
-Bitmap *visibleImage;
-Bitmap *filteredImage;
+
+Bitmap* visibleImage;
+Bitmap* filteredImage;
+GenericFilter* CurrFilter;
 std::string imagePath;
 bool clicked = false;
+
+const int screenHeight = 600;
 
 
 
@@ -58,23 +65,30 @@ int WINAPI			WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	PAINTSTRUCT ps;
-	HDC hdc;
+
 	switch (message)
 	{
-															// All drawing must be in this case
-		case WM_PAINT: 
+		case WM_PAINT:										// All drawing must be in this case
 		{
+			PAINTSTRUCT ps;
+			HDC hdc;
+
 			hdc = BeginPaint(hWnd, &ps);
 			Gdiplus::Graphics graphics(hdc);
-			Gdiplus::Bitmap* paintImage = clicked ? filteredImage : visibleImage;
+			Gdiplus::Bitmap* paintImage = (clicked ? filteredImage : visibleImage);
+
+			int height	= 600;
+			int width	= 1000;
 
 			if (paintImage)
 			{
-
+				float ratio = static_cast<float>(paintImage->GetWidth()) / paintImage->GetHeight();
+				width		= ratio * height;
 			}
 
-			graphics.DrawImage(paintImage, 40, 130, 200, 200);
+			Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);			// keeps the image inside the bounds
+			graphics.DrawImage(paintImage, rectangle);
+			//graphics.DrawImage(paintImage, 40, 130, width, height);			// wide image not inside bounds
 			EndPaint(hWnd, &ps);
 			break;
 		}
@@ -100,14 +114,12 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		{
 			switch (LOWORD(wParam))
 			{
-
 				case applyFilterb:
 				{
 					MessageBox(NULL, L"Applying Filter", L"", NULL);	// TODO
 																		// apply filter
 					return 0;
 				}
-
 
 				case BlurBoxr:
 				{
@@ -117,7 +129,8 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 				case BWr:
 				{
-					MessageBox(NULL, L"Changing filter to B&W", L"", NULL);		// TODO
+
+					//MessageBox(NULL, L"Changing filter to B&W", L"", NULL);		// TODO
 					return 0;
 				}
 
@@ -127,11 +140,11 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 					return 0;
 				}
 
-																	// choose original Image //
-				case BrowseImage_b:									// Browse Image Button down
+																	
+				case BrowseImage_b:									// choose original Image from file explorer//
 				{
 
-					std::string temp	= getFilePath(hWnd);					// choose image file from file explorer
+					std::string temp	= getFilePath(hWnd);
 					imagePath			= temp;
 					std::wstring wtemp(temp.begin(), temp.end());
 					visibleImage		= Bitmap::FromFile(wtemp.c_str());
@@ -145,12 +158,21 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		case WM_CLOSE:
 		{
 			DestroyWindow(hWnd);
+			if (visibleImage)
+				delete visibleImage;
+			if (filteredImage)
+				delete filteredImage;
 			return TRUE;
 			break;
 		}
 
 		case WM_DESTROY:
 		{
+			if (visibleImage)
+				delete visibleImage;
+			if (filteredImage)
+				delete filteredImage;
+
 			PostQuitMessage(0);
 			return TRUE;
 		}
