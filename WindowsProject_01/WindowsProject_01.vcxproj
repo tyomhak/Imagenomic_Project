@@ -145,6 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoxBlur.cpp" />
     <ClCompile Include="BW_Filter.cpp" />
     <ClCompile Include="GenericFilter.cpp" />
     <ClCompile Include="GenericImage.cpp" />
@@ -155,6 +156,7 @@
     <ResourceCompile Include="WindowsProject_01.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoxBlur.h" />
     <ClInclude Include="BW_Filter.h" />
     <ClInclude Include="GenericFilter.h" />
     <ClInclude Include="GenericImage.h" />

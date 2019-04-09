@@ -1,38 +1,29 @@
 #include "GenericImage.h"
-
+#include <iostream>
 
 
 GenericImage::GenericImage(Bitmap *bmap)
-	:	_bmap(bmap)
+	:	_bitMap(bmap)
 {
+	_width = bmap->GetWidth();
+	_height = bmap->GetHeight();
 
-	//BYTE* byteptr = (BYTE*)bmap.GetBits();
-
-	////You can use other functions for HBITMAP and HGDIOBJ methods to find out the 
-	////container for bitmap color table.
-	////For instance when you use GDI and HBITMAPS, you should use
-	////BYTE* byteptr = (BYTE*)(HBITMAPINFOHEADER + HBITMAPINFOHEADER->biSize);
-	////simple pointer arithmetics
-
-	//int pitch = bitmapzor.GetPitch(); //This is a pointer offset to get new line of the bitmap
-
-	//for (int i = 0; i < bitmapzor.GetWidth(); i++)
-	//	for (int j = 0; j < bitmapzor.GetHeight(); j++)
-	//	{
-	//		//pointer arithmetics to find (i,j) pixel colors:
-	//		R = *(byteptr + pitch * j + 3 * i);
-	//		G = *(byteptr + pitch * j + 3 * i + 1);
-	//		B = *(byteptr + pitch * j + 3 * i + 2);
-
-	//		//allter pixel G color:
-	//		G = (int)((float)G*1.3);
-	//		if (G > 255) G = 255;
-	//		//write down the new G-Color
-	//		*(byteptr + pitch * j + 3 * i + 1) = G;
-	//	}
+	bmap->LockBits(&Rect(0, 0, _width, _height), ImageLockModeWrite, PixelFormat32bppARGB, &_bmD);
+	_current = std::shared_ptr<byte>(((byte*)(void*)_bmD.Scan0));
+	_pixelSize = 4;
+	_stride = _bmD.Stride;//_pixelSize * _width;
 }
 
 
 GenericImage::~GenericImage()
 {
+	_bitMap->UnlockBits(&_bmD);
+}
+
+byte * GenericImage::GetPixel(int width, int height)
+{
+	if (width > _width || height > _height)
+		throw("out of bounds");
+
+	return (byte*)(void*)(_current.get() + height * _stride + width);
 }

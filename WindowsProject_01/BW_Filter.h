@@ -5,6 +5,7 @@
 #include <gdiplus.h>
 
 #include "GenericFilter.h"
+
 class BW_Filter :
 	public GenericFilter
 {
@@ -12,7 +13,7 @@ public:
 	BW_Filter(int radius);
 	~BW_Filter();
 
-	void filter(Bitmap* in, Bitmap* out)const override;
+	void filter(Bitmap* out)const override;
 };
 
 #endif // _BW_FILTER_H_

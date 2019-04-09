@@ -13,11 +13,12 @@ using namespace Gdiplus;
 
 /*			global variables			*/
 
-Bitmap* visibleImage;
-Bitmap* filteredImage;
-GenericFilter* CurrFilter;
+std::shared_ptr<Bitmap> visibleImage = nullptr;
+std::shared_ptr<Bitmap> filteredImage = nullptr;
+std::shared_ptr<GenericFilter> currFilter = nullptr;
 std::string imagePath;
 bool clicked = false;
+int radius = 1;
 
 const int screenHeight = 600;
 
@@ -74,8 +75,10 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			HDC hdc;
 
 			hdc = BeginPaint(hWnd, &ps);
+
+															// should move this part into a seperate function (OnPaint)
 			Gdiplus::Graphics graphics(hdc);
-			Gdiplus::Bitmap* paintImage = (clicked ? filteredImage : visibleImage);
+			std::shared_ptr<Bitmap> paintImage = (clicked ? filteredImage : visibleImage);
 
 			int height	= 600;
 			int width	= 1000;
@@ -87,8 +90,9 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 
 			Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);			// keeps the image inside the bounds
-			graphics.DrawImage(paintImage, rectangle);
-			//graphics.DrawImage(paintImage, 40, 130, width, height);			// wide image not inside bounds
+			graphics.DrawImage(paintImage.get(), rectangle);
+
+
 			EndPaint(hWnd, &ps);
 			break;
 		}
@@ -116,28 +120,32 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			{
 				case applyFilterb:
 				{
-					MessageBox(NULL, L"Applying Filter", L"", NULL);	// TODO
-																		// apply filter
-					return 0;
+					if (currFilter.get())
+					{
+						currFilter->filter(filteredImage.get());
+						InvalidateRect(hWnd, NULL, true);
+					}
+					else
+						MessageBox(NULL, L"Choose filter first", L"", NULL);
+					break;
 				}
 
 				case BlurBoxr:
 				{
 					MessageBox(NULL, L"Changing filter to Box Blur", L"", NULL);	// TODO
-					return 0;
+					break;
 				}
 
 				case BWr:
 				{
-
-					//MessageBox(NULL, L"Changing filter to B&W", L"", NULL);		// TODO
-					return 0;
+					currFilter = std::make_shared<BW_Filter>(BW_Filter(radius));					
+					break;
 				}
 
 				case Radiuss:
 				{
 					MessageBox(NULL, L"Change the radius according to slider", L"", NULL);	// TODO
-					return 0;
+					break;
 				}
 
 																	
@@ -147,34 +155,27 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 					std::string temp	= getFilePath(hWnd);
 					imagePath			= temp;
 					std::wstring wtemp(temp.begin(), temp.end());
-					visibleImage		= Bitmap::FromFile(wtemp.c_str());
+					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
+					filteredImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
 
 					InvalidateRect(hWnd, NULL, true);						// redraw window (with new image)
-					return 0;
+					break;
 				}
 			}
+			break;
 		}
 
 		case WM_CLOSE:
 		{
+			PostQuitMessage(0);
 			DestroyWindow(hWnd);
-			if (visibleImage)
-				delete visibleImage;
-			if (filteredImage)
-				delete filteredImage;
-			return TRUE;
 			break;
 		}
 
 		case WM_DESTROY:
 		{
-			if (visibleImage)
-				delete visibleImage;
-			if (filteredImage)
-				delete filteredImage;
-
 			PostQuitMessage(0);
-			return TRUE;
+			return FALSE;
 		}
 	}
 
