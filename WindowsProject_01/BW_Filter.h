@@ -11,7 +11,7 @@ class BW_Filter :
 {
 public:
 	BW_Filter(int radius);
-	~BW_Filter();
+	
 
 	void filter(Bitmap* out) override;
 };

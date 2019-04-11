@@ -2,6 +2,7 @@
 #define __GENERICFILTER_H__
 
 #include "GenericImage.h"
+#include <thread>
 
 class GenericFilter
 {
