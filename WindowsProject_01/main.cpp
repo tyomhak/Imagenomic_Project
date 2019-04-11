@@ -67,6 +67,7 @@ int WINAPI			WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 
+
 	switch (message)
 	{
 		case WM_PAINT:										// All drawing must be in this case
@@ -83,13 +84,14 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			int height	= 600;
 			int width	= 1000;
 
-			if (paintImage)
+			if (paintImage.get())
 			{
 				float ratio = static_cast<float>(paintImage->GetWidth()) / paintImage->GetHeight();
 				width		= ratio * height;
 			}
 
-			Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);			// keeps the image inside the bounds
+					// keeps the image inside the bounds
+			Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);
 			graphics.DrawImage(paintImage.get(), rectangle);
 
 
@@ -122,6 +124,11 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 				{
 					if (currFilter.get())
 					{
+						std::wstring wtemp(imagePath.begin(), imagePath.end());
+						filteredImage = std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
+
+
+						//filteredImage.reset<Bitmap>((visibleImage->Clone(Rect(0,0, visibleImage->GetWidth(), visibleImage->GetHeight()), visibleImage->GetPixelFormat())));
 						currFilter->filter(filteredImage.get());
 						InvalidateRect(hWnd, NULL, true);
 					}
@@ -152,9 +159,9 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 				case BrowseImage_b:									// choose original Image from file explorer//
 				{
 
-					std::string temp	= getFilePath(hWnd);
-					imagePath			= temp;
-					std::wstring wtemp(temp.begin(), temp.end());
+					imagePath			= getFilePath(hWnd);
+					
+					std::wstring wtemp(imagePath.begin(), imagePath.end());
 					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
 					filteredImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
 

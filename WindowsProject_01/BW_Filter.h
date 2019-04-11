@@ -13,7 +13,7 @@ public:
 	BW_Filter(int radius);
 	~BW_Filter();
 
-	void filter(Bitmap* out)const override;
+	void filter(Bitmap* out) override;
 };
 
 #endif // _BW_FILTER_H_

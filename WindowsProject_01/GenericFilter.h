@@ -9,7 +9,7 @@ public:
 	GenericFilter(int rad);
 	virtual ~GenericFilter();
 
-	virtual void filter(Bitmap* out)const = 0;
+	virtual void filter(Bitmap* out) = 0;
 
 private:
 	int radius;

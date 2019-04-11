@@ -12,7 +12,7 @@ BoxBlur::~BoxBlur()
 {
 }
 
-void BoxBlur::filter(Bitmap * out) const
+void BoxBlur::filter(Bitmap * out)
 {
 	GenericImage image(out);
 

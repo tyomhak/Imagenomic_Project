@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _GENERICIMAGE_H__
+#define _GENERICIMAGE_H__
 
 #include <memory>
 #include <windows.h>
@@ -27,6 +28,7 @@ public :
 	int		_height;
 	int _stride;
 
-	std::shared_ptr<byte> _current;
+	byte* _current;
 };
 
+#endif // _GENERICIMAGE__
