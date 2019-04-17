@@ -3,7 +3,6 @@
 #include <string>
 #include "resource.h"
 #include <tchar.h>
-#include <atlstr.h>	// for CW2A conversion
 #include <memory>
 #include "GenericFilter.h"
 #include "BW_Filter.h"
@@ -14,8 +13,9 @@ using namespace Gdiplus;
 /*			global variables			*/
 
 std::shared_ptr<Bitmap> visibleImage = nullptr;
-std::shared_ptr<Bitmap> filteredImage = nullptr;
+
 std::shared_ptr<GenericFilter> currFilter = nullptr;
+
 std::string imagePath;
 bool clicked = false;
 int radius = 1;
