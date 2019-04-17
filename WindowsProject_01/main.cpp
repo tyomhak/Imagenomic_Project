@@ -16,7 +16,7 @@ std::shared_ptr<Bitmap> visibleImage = nullptr;
 
 std::shared_ptr<GenericFilter> currFilter = nullptr;
 
-std::string imagePath;
+std::wstring imagePath;
 bool clicked = false;
 int radius = 1;
 
@@ -25,7 +25,7 @@ const int screenHeight = 600;
 
 
 /*			function declarations		*/
-std::string			getFilePath(HWND hwnd);
+std::wstring			getFilePath(HWND hwnd);
 LRESULT CALLBACK	DialogProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 int		WINAPI		WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 
@@ -120,16 +120,11 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		{
 			switch (LOWORD(wParam))
 			{
-				case applyFilterb:
+				case applyFilterb:													// TODO : apply filter
 				{
-					if (currFilter.get())
+					if (currFilter.get())		
 					{
-						std::wstring wtemp(imagePath.begin(), imagePath.end());
-						filteredImage = std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
 
-
-						//filteredImage.reset<Bitmap>((visibleImage->Clone(Rect(0,0, visibleImage->GetWidth(), visibleImage->GetHeight()), visibleImage->GetPixelFormat())));
-						currFilter->filter(filteredImage.get());
 						InvalidateRect(hWnd, NULL, true);
 					}
 					else
@@ -158,12 +153,10 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 																	
 				case BrowseImage_b:									// choose original Image from file explorer//
 				{
-
-					imagePath			= getFilePath(hWnd);
+					imagePath					= getFilePath(hWnd);
+					std::wstring wtemp			= getFilePath(hWnd);
 					
-					std::wstring wtemp(imagePath.begin(), imagePath.end());
 					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
-					filteredImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
 
 					InvalidateRect(hWnd, NULL, true);						// redraw window (with new image)
 					break;
@@ -189,7 +182,7 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	return FALSE;
 }
 
-std::string			getFilePath(HWND hwnd)
+std::wstring			getFilePath(HWND hwnd)
 {
 	wchar_t filename[MAX_PATH];
 	OPENFILENAME ofn;
@@ -207,5 +200,5 @@ std::string			getFilePath(HWND hwnd)
 	if (!GetOpenFileName(&ofn))
 		throw "Invalid File input";
 
-	return std::string(CW2A(ofn.lpstrFile));
+	return ofn.lpstrFile;
 }
