@@ -3,19 +3,20 @@
 #include <string>
 #include "resource.h"
 #include <tchar.h>
-#include <atlstr.h>	// for CW2A conversion
 #include <memory>
-#include "GenericFilter.h"
+#include "BitmapImage.h"
 #include "BW_Filter.h"
+
 
 using namespace Gdiplus;
 
 
 /*			global variables			*/
-
 std::shared_ptr<Bitmap> visibleImage = nullptr;
-std::shared_ptr<Bitmap> filteredImage = nullptr;
+std::shared_ptr<BitmapImage> original = nullptr;
+std::shared_ptr<BitmapImage> filtered = nullptr;
 std::shared_ptr<GenericFilter> currFilter = nullptr;
+
 std::wstring imagePath;
 bool clicked = false;
 int radius = 1;
@@ -66,36 +67,40 @@ int WINAPI			WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-
-
 	switch (message)
 	{
 		case WM_PAINT:										// All drawing must be in this case
 		{
-			PAINTSTRUCT ps;
-			HDC hdc;
-
-			hdc = BeginPaint(hWnd, &ps);
-
-															// should move this part into a seperate function (OnPaint)
-			Gdiplus::Graphics graphics(hdc);
-			std::shared_ptr<Bitmap> paintImage = (clicked ? filteredImage : visibleImage);
-
-			int height	= 600;
-			int width	= 1000;
-
-			if (paintImage.get())
+			if (visibleImage.get())
 			{
-				float ratio = static_cast<float>(paintImage->GetWidth()) / paintImage->GetHeight();
-				width		= ratio * height;
+				PAINTSTRUCT ps;
+				HDC hdc;
+
+				hdc = BeginPaint(hWnd, &ps);
+
+				// should move this part into a seperate function (OnPaint)
+				Gdiplus::Graphics graphics(hdc);
+
+
+				BitmapImage* temp = clicked ? original.get() : filtered.get();
+				Bitmap paintBmap(temp->_width, temp->_height, temp->_stride, PixelFormat32bppARGB, temp->_buffer);
+
+				int height = 600;
+				int width = 1000;
+
+				if (visibleImage.get())
+				{
+					float ratio = static_cast<float>(visibleImage->GetWidth()) / visibleImage->GetHeight();
+					width = ratio * height;
+				}
+
+				// keeps the image inside the bounds
+				Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);
+				graphics.DrawImage(visibleImage.get(), rectangle);
+
+
+				EndPaint(hWnd, &ps);
 			}
-
-					// keeps the image inside the bounds
-			Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);
-			graphics.DrawImage(paintImage.get(), rectangle);
-
-
-			EndPaint(hWnd, &ps);
 			break;
 		}
 														 
@@ -122,14 +127,9 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			{
 				case applyFilterb:
 				{
-					if (currFilter.get())
+					if (currFilter.get())		
 					{
-						std::wstring wtemp(imagePath.begin(), imagePath.end());
-						filteredImage = std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
-
-
-						//filteredImage.reset<Bitmap>((visibleImage->Clone(Rect(0,0, visibleImage->GetWidth(), visibleImage->GetHeight()), visibleImage->GetPixelFormat())));
-						currFilter->filter(filteredImage.get());
+						currFilter->filter(filtered.get());
 						InvalidateRect(hWnd, NULL, true);
 					}
 					else
@@ -158,11 +158,10 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 																	
 				case BrowseImage_b:									// choose original Image from file explorer//
 				{
-					std::wstring wtemp = getFilePath(hWnd);
-					
-					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
-					filteredImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
-
+					imagePath					= getFilePath(hWnd);					
+					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(imagePath.c_str()));
+					original			= std::shared_ptr<BitmapImage>(new BitmapImage(visibleImage.get()));
+					filtered			= std::shared_ptr<BitmapImage>(new BitmapImage(visibleImage.get()));	// temporary // change to copy from original to skip Bitmap heavy operations
 					InvalidateRect(hWnd, NULL, true);						// redraw window (with new image)
 					break;
 				}
@@ -187,7 +186,7 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	return FALSE;
 }
 
-std::wstring 		getFilePath(HWND hwnd)
+std::wstring			getFilePath(HWND hwnd)
 {
 	wchar_t filename[MAX_PATH];
 	OPENFILENAME ofn;

@@ -7,7 +7,7 @@ public:
 	BoxBlur(int radius);
 	~BoxBlur();
 
-	void filter(Bitmap* out)override;
+	void filter(BitmapImage* out)override;
 
 
 private:
