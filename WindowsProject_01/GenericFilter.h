@@ -10,11 +10,10 @@ public:
 	GenericFilter(int rad);
 	virtual ~GenericFilter();
 
-	virtual void filter(Bitmap* out) = 0;
+	virtual void filter(BitmapImage* out) = 0;
 
 private:
 	int radius;
-	//GenericImage *image;
 };
 
 #endif // __GENERICFILTER_H__

@@ -8,7 +8,7 @@ BW_Filter::BW_Filter(int radius)
 }
 
 
-void BW_Filter::filter(Bitmap * out)		
+void BW_Filter::filter(BitmapImage * out)		
 {
 	// switch commented and uncommented parts when GetPixel() is fixed
 
@@ -25,24 +25,15 @@ void BW_Filter::filter(Bitmap * out)
 	//}
 
 
-
-
-	BitmapData bmD;
-	out->LockBits(&Rect(0, 0, out->GetWidth(), out->GetHeight()), ImageLockModeWrite, PixelFormat32bppARGB, &bmD);
-
-	int _pixelSize = 4;
-	byte* _current = (byte*)(void*)bmD.Scan0;
-
-
-	// grayscale
-	for (int i = 0; i < bmD.Width * bmD.Height; ++i)
+	for (unsigned int i = 0; i < out->_width; ++i)
 	{
-		int avg = (_current[0] + _current[1] + _current[2])/3;
-		_current[0] = _current[1] = _current[2] = avg;
-
-		_current += _pixelSize;
+		for (unsigned int j = 0; j < out->_height; ++j)
+		{
+			BitmapImage::Pixel temp = out->bGetPixel(i, j);
+			int avg = (temp.getR() + temp.getG() + temp.getB())/3;
+			temp.setR(avg);
+			temp.setG(avg);
+			temp.setB(avg);
+		}
 	}
-
-	out->UnlockBits(&bmD);
-	
 }

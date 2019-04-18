@@ -4,15 +4,17 @@
 #include "resource.h"
 #include <tchar.h>
 #include <memory>
-#include "GenericFilter.h"
+#include "BitmapImage.h"
 #include "BW_Filter.h"
+
 
 using namespace Gdiplus;
 
 
 /*			global variables			*/
-
 std::shared_ptr<Bitmap> visibleImage = nullptr;
+std::shared_ptr<BitmapImage> original = nullptr;
+std::shared_ptr<BitmapImage> filtered = nullptr;
 
 std::shared_ptr<GenericFilter> currFilter = nullptr;
 
@@ -72,30 +74,41 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	{
 		case WM_PAINT:										// All drawing must be in this case
 		{
-			PAINTSTRUCT ps;
-			HDC hdc;
-
-			hdc = BeginPaint(hWnd, &ps);
-
-															// should move this part into a seperate function (OnPaint)
-			Gdiplus::Graphics graphics(hdc);
-			std::shared_ptr<Bitmap> paintImage = visibleImage; //(clicked ? filteredImage : visibleImage);
-
-			int height	= 600;
-			int width	= 1000;
-
-			if (paintImage.get())
+			if (visibleImage.get())
 			{
-				float ratio = static_cast<float>(paintImage->GetWidth()) / paintImage->GetHeight();
-				width		= ratio * height;
+				PAINTSTRUCT ps;
+				HDC hdc;
+
+				hdc = BeginPaint(hWnd, &ps);
+
+				// should move this part into a seperate function (OnPaint)
+				Gdiplus::Graphics graphics(hdc);
+
+
+				BitmapData _bmD;
+				visibleImage->LockBits(&Rect(0, 0, visibleImage->GetWidth(), visibleImage->GetHeight()), ImageLockModeWrite, PixelFormat32bppARGB, &_bmD);
+
+				BitmapImage* temp = clicked ? original.get() : filtered.get();
+				memcpy(_bmD.Scan0, temp->_buffer, _bmD.Height * _bmD.Width);
+
+				visibleImage->UnlockBits(&_bmD);
+
+				int height = 600;
+				int width = 1000;
+
+				if (visibleImage.get())
+				{
+					float ratio = static_cast<float>(visibleImage->GetWidth()) / visibleImage->GetHeight();
+					width = ratio * height;
+				}
+
+				// keeps the image inside the bounds
+				Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);
+				graphics.DrawImage(visibleImage.get(), rectangle);
+
+
+				EndPaint(hWnd, &ps);
 			}
-
-					// keeps the image inside the bounds
-			Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);
-			graphics.DrawImage(paintImage.get(), rectangle);
-
-
-			EndPaint(hWnd, &ps);
 			break;
 		}
 														 
@@ -155,7 +168,8 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 				{
 					imagePath					= getFilePath(hWnd);					
 					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(imagePath.c_str()));
-
+					original			= std::shared_ptr<BitmapImage>(new BitmapImage(visibleImage.get()));
+					filtered			= std::shared_ptr<BitmapImage>(new BitmapImage(visibleImage.get()));	// temporary // change to copy from original to skip Bitmap heavy operations
 					InvalidateRect(hWnd, NULL, true);						// redraw window (with new image)
 					break;
 				}

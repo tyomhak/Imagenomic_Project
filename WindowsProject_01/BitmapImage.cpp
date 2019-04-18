@@ -6,12 +6,17 @@ BitmapImage::BitmapImage(Bitmap * bmap)
 	_height = bmap->GetHeight();
 
 	BitmapData _bmD;
-	bmap->LockBits(&Rect(0, 0, _width, _height), ImageLockModeWrite, PixelFormat32bppARGB, &_bmD);
+	bmap->LockBits(&Rect(0, 0, _width, _height), ImageLockModeRead, PixelFormat32bppARGB, &_bmD);
+	
+	_stride = abs(_bmD.Stride);
+	_scanLen = _bmD.Width; //_bmD.Width * 4 + _stride;
 
-	_buffer = new byte[abs(_bmD.Stride) * _bmD.Height];		/* allocate memory with enough size for the bitmap */
-	memcpy(_buffer, _bmD.Scan0, abs(_bmD.Stride) * _bmD.Height);	/* copy image from Bitmap to My Image object */
-
+	_buffer = new byte[ _scanLen * _bmD.Height];		/* allocate memory with enough size for the bitmap */
+	memcpy(_buffer, _bmD.Scan0, _scanLen * _bmD.Height);	/* copy image from Bitmap to My Image object */
+	
+	///* TODO : CHECK correct coordinate getting */
 	bmap->UnlockBits(&_bmD);
+
 }
 
 BitmapImage::~BitmapImage()
@@ -19,7 +24,13 @@ BitmapImage::~BitmapImage()
 	delete[] _buffer;
 }
 
-byte * BitmapImage::bGetPixel(int width, int height)
+GenericImage::Pixel BitmapImage::bGetPixel(int width, int height)
 {
-	return nullptr;
+	if (width > _width || height > _height)
+		throw("out of bounds coordinates");
+
+	Pixel pixel;
+	pixel.value = ((uint32_t*)_buffer + height * _scanLen + width);
+
+	return pixel;
 }
