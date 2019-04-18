@@ -77,12 +77,9 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 				HDC hdc;
 
 				hdc = BeginPaint(hWnd, &ps);
-
-				// should move this part into a seperate function (OnPaint)
 				Gdiplus::Graphics graphics(hdc);
 
-
-				BitmapImage* temp = clicked ? original.get() : filtered.get();
+				BitmapImage* temp = filtered.get();//clicked ? original.get() : filtered.get();
 				Bitmap paintBmap(temp->_width, temp->_height, temp->_stride, PixelFormat32bppARGB, temp->_buffer);
 
 				int height = 600;
@@ -90,13 +87,13 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 				if (visibleImage.get())
 				{
-					float ratio = static_cast<float>(visibleImage->GetWidth()) / visibleImage->GetHeight();
+					float ratio = static_cast<float>(paintBmap.GetWidth()) / paintBmap.GetHeight();
 					width = ratio * height;
 				}
 
 				// keeps the image inside the bounds
 				Rect rectangle(40, 130, width > 1000 ? 1000 : width, height);
-				graphics.DrawImage(visibleImage.get(), rectangle);
+				graphics.DrawImage(&paintBmap, rectangle);
 
 
 				EndPaint(hWnd, &ps);
@@ -119,7 +116,6 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			InvalidateRect(hWnd, NULL, true);				// redraw window
 			break;
 		}
-
 
 		case WM_COMMAND:
 		{
