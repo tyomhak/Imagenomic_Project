@@ -79,7 +79,7 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 															// should move this part into a seperate function (OnPaint)
 			Gdiplus::Graphics graphics(hdc);
-			std::shared_ptr<Bitmap> paintImage = (clicked ? filteredImage : visibleImage);
+			std::shared_ptr<Bitmap> paintImage = visibleImage; //(clicked ? filteredImage : visibleImage);
 
 			int height	= 600;
 			int width	= 1000;
@@ -153,10 +153,8 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 																	
 				case BrowseImage_b:									// choose original Image from file explorer//
 				{
-					imagePath					= getFilePath(hWnd);
-					std::wstring wtemp			= getFilePath(hWnd);
-					
-					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(wtemp.c_str()));
+					imagePath					= getFilePath(hWnd);					
+					visibleImage		= std::shared_ptr<Bitmap>(Bitmap::FromFile(imagePath.c_str()));
 
 					InvalidateRect(hWnd, NULL, true);						// redraw window (with new image)
 					break;

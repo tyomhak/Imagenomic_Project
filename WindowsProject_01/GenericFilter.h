@@ -1,7 +1,7 @@
 #ifndef __GENERICFILTER_H__
 #define __GENERICFILTER_H__
 
-#include "GenericImage.h"
+#include "BitmapImage.h"
 #include <thread>
 
 class GenericFilter

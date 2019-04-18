@@ -28,7 +28,7 @@ void BoxBlur::horizAvg(GenericImage& img, int color, int radius)
 				continue;
 			else
 			{
-				avgSum += img.GetPixel(curRow, i)[color];
+				avgSum += img.bGetPixel(curRow, i)[color];
 				++size;
 			}
 			++i;
@@ -40,12 +40,12 @@ void BoxBlur::horizAvg(GenericImage& img, int color, int radius)
 		// update pixel, remove left, add right to average
 		while (curCol < img._height)
 		{
-			img.GetPixel(curRow, curCol)[color] = avgSum / size;
+			img.bGetPixel(curRow, curCol)[color] = avgSum / size;
 
 
 			if (curCol - radius < -1)
 			{
-				avgSum -= img.GetPixel(curRow, curCol - radius + 1)[color];
+				avgSum -= img.bGetPixel(curRow, curCol - radius + 1)[color];
 			}
 			else
 				++size;
@@ -53,7 +53,7 @@ void BoxBlur::horizAvg(GenericImage& img, int color, int radius)
 
 			if (curCol + radius < img._height)
 			{
-				avgSum += img.GetPixel(curRow, curCol + radius)[color];
+				avgSum += img.bGetPixel(curRow, curCol + radius)[color];
 			}
 			else
 				--size;
@@ -74,7 +74,7 @@ void BoxBlur::verticalAvg(GenericImage& img, int color, int radius)
 
 void BoxBlur::filter(Bitmap * out)
 {
-	GenericImage image(out);
+	BitmapImage image(out);
 	int radius = 5;					// TODO make radius changable
 
 	

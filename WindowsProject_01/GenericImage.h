@@ -2,6 +2,8 @@
 #define _GENERICIMAGE_H__
 
 #include <memory>
+#include <vector>
+
 #include <windows.h>
 #include <objidl.h>
 #include <gdiplus.h>
@@ -12,23 +14,17 @@ using namespace Gdiplus;
 class GenericImage
 {
 public:
-	GenericImage(Bitmap *bmap);
-	~GenericImage();
+	GenericImage();
+	virtual ~GenericImage();
 
-	//virtual
-	byte* GetPixel(int width, int height);
+	virtual byte* bGetPixel(int width, int height) = 0;
 
 
 public :
-	std::shared_ptr<Bitmap> _bitMap;
-	BitmapData _bmD;
-	
-	int		_pixelSize;
 	int		_width;
 	int		_height;
-	int _stride;
 
-	byte* _current;
+	void* _buffer = nullptr;
 };
 
 #endif // _GENERICIMAGE__
