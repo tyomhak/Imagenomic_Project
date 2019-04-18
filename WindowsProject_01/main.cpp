@@ -15,7 +15,6 @@ using namespace Gdiplus;
 std::shared_ptr<Bitmap> visibleImage = nullptr;
 std::shared_ptr<BitmapImage> original = nullptr;
 std::shared_ptr<BitmapImage> filtered = nullptr;
-
 std::shared_ptr<GenericFilter> currFilter = nullptr;
 
 std::wstring imagePath;
@@ -68,8 +67,6 @@ int WINAPI			WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-
-
 	switch (message)
 	{
 		case WM_PAINT:										// All drawing must be in this case
@@ -85,13 +82,8 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 				Gdiplus::Graphics graphics(hdc);
 
 
-				BitmapData _bmD;
-				visibleImage->LockBits(&Rect(0, 0, visibleImage->GetWidth(), visibleImage->GetHeight()), ImageLockModeWrite, PixelFormat32bppARGB, &_bmD);
-
 				BitmapImage* temp = clicked ? original.get() : filtered.get();
-				memcpy(_bmD.Scan0, temp->_buffer, _bmD.Height * _bmD.Width);
-
-				visibleImage->UnlockBits(&_bmD);
+				Bitmap paintBmap(temp->_width, temp->_height, temp->_stride, PixelFormat32bppARGB, temp->_buffer);
 
 				int height = 600;
 				int width = 1000;
@@ -133,11 +125,11 @@ LRESULT CALLBACK	DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		{
 			switch (LOWORD(wParam))
 			{
-				case applyFilterb:													// TODO : apply filter
+				case applyFilterb:
 				{
 					if (currFilter.get())		
 					{
-
+						currFilter->filter(filtered.get());
 						InvalidateRect(hWnd, NULL, true);
 					}
 					else

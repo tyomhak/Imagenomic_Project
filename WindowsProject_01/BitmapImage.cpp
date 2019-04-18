@@ -8,13 +8,14 @@ BitmapImage::BitmapImage(Bitmap * bmap)
 	BitmapData _bmD;
 	bmap->LockBits(&Rect(0, 0, _width, _height), ImageLockModeRead, PixelFormat32bppARGB, &_bmD);
 	
-	_stride = abs(_bmD.Stride);
-	_scanLen = _bmD.Width; //_bmD.Width * 4 + _stride;
+	BitmapDataPointer = &(_bmD.Scan0);	// store the address of the buffer pointer in the Bitmap object
 
-	_buffer = new byte[ _scanLen * _bmD.Height];		/* allocate memory with enough size for the bitmap */
-	memcpy(_buffer, _bmD.Scan0, _scanLen * _bmD.Height);	/* copy image from Bitmap to My Image object */
+	_stride = _bmD.Stride;
+	//_scanLen = _bmD.Width * 4 + _stride; //_bmD.Width * 4 + _stride;
+
+	_buffer = new byte[ abs(_stride) * _bmD.Height];		/* allocate memory with enough size for the bitmap */
+	memcpy(_buffer, _bmD.Scan0, abs(_stride) * _bmD.Height);	/* copy image from Bitmap to My Image object */
 	
-	///* TODO : CHECK correct coordinate getting */
 	bmap->UnlockBits(&_bmD);
 
 }

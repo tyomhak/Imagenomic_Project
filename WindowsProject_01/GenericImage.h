@@ -40,12 +40,13 @@ public:
 	
 
 public :
-	int		_width;
-	int		_height;
+	INT		_width;
+	INT		_height;
 
-	int _stride = 0;
+	INT _stride = 0;
 	UINT _scanLen = 0;
-	void* _buffer = nullptr;
+	byte* _buffer = nullptr;
+	void* BitmapDataPointer = nullptr;
 
 };
 
